@@ -17,6 +17,6 @@ int main(void) {
         arr[i] = i;
         printf("%d", arr[i]);
     }
-
+    printf("%d", result);
     return 0;
 }
