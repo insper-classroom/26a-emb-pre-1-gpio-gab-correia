@@ -7,6 +7,7 @@ int multiplyNumbers(int x, int y) {
     int product = x * y;
 }
 
+
 int main(void) {
     int a, b = 5; //uninitvar, legacyUninitvar
     int result = multiplyNumbers(a, b);
