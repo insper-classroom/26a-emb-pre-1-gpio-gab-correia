@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 
-void foo(void) {
+void foo(int *a) {
     *a = *a + 1; // acessa variavel global
 }
 
