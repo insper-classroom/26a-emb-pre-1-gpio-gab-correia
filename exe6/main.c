@@ -42,7 +42,7 @@ int main() {
 
     int cnt = 0;
     show_digit(0);  
-    sleep_ms(200);
+    sleep_ms(500);
 
     while (true) {
         if (!gpio_get(BTN)) {
