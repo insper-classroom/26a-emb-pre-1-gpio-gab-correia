@@ -1,58 +1,58 @@
 #include <stdio.h>
-#include "pico/stdlib.h"
 #include "hardware/gpio.h"
+#include "pico/stdlib.h"
 
+#define FIRST_GPIO 2
+#define BTN_PIN_G 28
 
-const int SEG[] = {2, 3, 4, 5, 6, 7, 8};
-const int BTN = 28;
+static int last_btn = 1; 
+static int cnt = 0;
 
-
-const int digits[10][7] = {
-    {1,1,1,1,1,1,0}, 
-    {0,1,1,0,0,0,0}, 
-    {1,1,0,1,1,0,1}, 
-    {1,1,1,1,0,0,1}, 
-    {0,1,1,0,0,1,1}, 
-    {1,0,1,1,0,1,1}, 
-    {1,0,1,1,1,1,1}, 
-    {1,1,1,0,0,0,0}, 
-    {1,1,1,1,1,1,1}, 
-    {1,1,1,1,0,1,1}, 
+static const int bits[10] = {
+    0x3f,  // 0: ABCDEF
+    0x06,  // 1: BC
+    0x5b,  // 2: ABGED
+    0x4f,  // 3: ABCDG
+    0x66,  // 4: BCFG
+    0x6d,  // 5: ACDFG
+    0x7d,  // 6: ACDEFG
+    0x07,  // 7: ABC
+    0x7f,  // 8: ABCDEFG
+    0x67   // 9: ABCDFG
 };
 
-void show_digit(int n) {
+void seven_seg_init(void) {
+    for (int gpio = FIRST_GPIO; gpio < FIRST_GPIO + 7; gpio++) {
+        gpio_init(gpio);
+        gpio_set_dir(gpio, GPIO_OUT);
+    }
+    gpio_init(BTN_PIN_G);
+    gpio_set_dir(BTN_PIN_G, GPIO_IN);
+    gpio_pull_up(BTN_PIN_G);
+}
+
+void seven_seg_display(int value) {
     for (int i = 0; i < 7; i++) {
-        gpio_put(SEG[i], digits[n][i]);
+        int gpio = FIRST_GPIO + i;
+        int bit = (bits[value] >> i) & 1;
+        gpio_put(gpio, bit);
     }
 }
 
-int main() {
+int main(void) {
     stdio_init_all();
-
- 
-    for (int i = 0; i < 7; i++) {
-        gpio_init(SEG[i]);
-        gpio_set_dir(SEG[i], GPIO_OUT);
-    }
-
     
-    gpio_init(BTN);
-    gpio_set_dir(BTN, GPIO_IN);
-    gpio_pull_up(BTN);
-
-    int cnt = 0;
-    show_digit(0);  
-    sleep_ms(500);
-
+    seven_seg_init();
+    seven_seg_display(0); 
+    
     while (true) {
-        if (!gpio_get(BTN)) {
-            sleep_ms(20);                
-            if (!gpio_get(BTN)) {
-                cnt = (cnt + 1) % 10;  
-                show_digit(cnt);
-                while (!gpio_get(BTN)); 
-                sleep_ms(20);
-            }
+        int btn = gpio_get(BTN_PIN_G);
+        if (last_btn && !btn) {  
+            cnt = (cnt + 1) % 10;
+            seven_seg_display(cnt);
+            printf("cnt: %d\n", cnt);  
         }
+        last_btn = btn;
+        sleep_ms(10);
     }
 }
